@@ -116,7 +116,7 @@ def split_documents(documents: list[Document]) -> list[Chunk]:
 
             if (
                 current_parts
-                and current_length + paragraph_length + 2 > 700
+                and current_length + paragraph_length + 2 > config.CHUNK_SIZE
             ):
                 chunks.append(
                     Chunk(

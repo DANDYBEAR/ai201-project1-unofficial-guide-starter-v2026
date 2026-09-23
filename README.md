@@ -33,11 +33,9 @@ The city_guides documents contain labeled sections such as “Getting around” 
 
 ## Sample Chunks
 
-56 chunks total. Showing 5, spread across the corpus.
-
-Paste these into your README under Sample Chunks. The rubric asks
-for the source file and the function that produced them — both are
-printed for you below.
+The chunker produced 56 chunks from the `city_guides` corpus. The five samples
+below were printed by `chunker.py::split_documents` and include their source
+files and chunk indexes.
 
 ======================================================================
 Chunk 1  |  source: guide_accessibility.md#0  |  produced by: chunker.py::split_documents
@@ -118,14 +116,13 @@ Road and the coast road, neither of which has a shoulder.
 <!-- One complete question and answer, pasted as text, with the source line
      visible. Milestone 4. -->
 
-**Question:**
+**Question:** What is there to eat on the riverside strip in Brightwater?
 
-**Answer:**
+**Answer:** The riverside strip has six or seven places aimed at visitors. For
+comparable food at a lower price, Corry Lane, two streets inland, costs about
+one third less. Sources: `guide_brightwater.md` and `guide_eating.md`.
 
-```
-```
-
-**My relevance cutoff:**
+**My relevance cutoff:** 0.6
 
 <!-- The number you set in config.py, and how you got there.
 
@@ -138,7 +135,22 @@ Road and the coast road, neither of which has a shoulder.
 
 | Question | In corpus? | Best distance |
 |---|---|---|
-|  |  |  |
+| What is there to eat on the riverside strip in Brightwater? | Yes | 0.4008 |
+| Where can I find cheaper food in Brightwater, other than the riverside strip? | Yes | 0.4249 |
+| What is the best time of the year to visit Brightwater? | Yes | 0.3654 |
+| How long does it take to walk across Brightwater? | Yes | 0.3516 |
+| Where and when is the Tuesday market in Brightwater? | Yes | 0.3117 |
+| What is the capital of Mongolia? | No | 0.8445 |
+| How do I change the oil in a diesel engine? | No | 0.9113 |
+| Who won the 1994 World Cup? | No | 1.0208 |
+| What is the recommended dosage of ibuprofen for a headache? | No | 0.8604 |
+| How do I write a for loop in Rust? | No | 0.8190 |
+
+The five in-scope questions had best distances between 0.3117 and 0.4249.
+The five out-of-scope questions had best distances between 0.8190 and 1.0208.
+I kept the cutoff at 0.6 because it falls in the gap between the two groups:
+all five in-scope questions are below it, while all five out-of-scope questions
+are above it.
 
 ## How I Used AI
 
@@ -151,9 +163,22 @@ Road and the coast road, neither of which has a shoulder.
 
      Milestone 5. -->
 
-**1.**
+**1.** I asked GitHub Copilot for help replacing the fixed-size chunker with a
+paragraph-aware strategy for the `city_guides` corpus. It suggested grouping
+paragraphs until they reached about 700 characters and carrying the final
+paragraph into the next chunk for context. I tested the output with
+`python app.py --corpus city_guides chunks -n 5`, then noticed that the custom
+function was still returning `fallback_split(documents)`. I changed it to
+return the custom `chunks` list and verified that the output identified
+`chunker.py::split_documents` as the producer.
 
-**2.**
+**2.** I asked GitHub Copilot how to choose the relevance cutoff after running
+the retrieval tests. It explained that I should compare the best distances for
+five in-scope and five out-of-scope questions instead of guessing from one
+question. My measured in-scope distances ranged from 0.3117 to 0.4249, while
+the out-of-scope distances ranged from 0.8190 to 1.0208. I kept the cutoff at
+0.6 because it falls between those two groups and recorded the evidence in
+this README.
 
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
