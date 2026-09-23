@@ -21,62 +21,97 @@
 
 ## What This Does
 
-<!-- Three or four sentences. Which corpus you picked, and the kinds of
-     questions your system answers. Write it for someone who has never seen
-     this repo.
-
-     Milestone 5. -->
+This project is a question-answering system for the `city_guides` corpus. It retrieves information about towns, transportation, accessibility, walking and cycling routes, food, and places to visit. Users can ask questions such as how to reach a town, what transportation is available, or which activities are suitable for visitors. The system searches the guide documents and uses the most relevant chunks to generate an answer with a source.
 
 ## Chunking Strategy
 
-**Chunk size:**
-**Overlap:**
+**Chunk size:** Approximately 700 characters, while preserving paragraph and heading boundaries.
 
-<!-- What about YOUR documents made you pick these numbers? Short posts and
-     long sectioned guides don't want the same chunking, and "800 seemed
-     reasonable" earns nothing. Point at something you noticed when you read
-     the documents in Milestone 1.
+**Overlap:** The final paragraph of a chunk is carried into the next chunk when a document is split.
 
-     If you changed your mind partway through, say so and say why. That's worth
-     more than pretending you got it right first time.
-
-     Milestone 3. -->
+The city_guides documents contain labeled sections such as “Getting around” and “Eat and drink.” The original fixed 800-character strategy could cut through those sections, so I used paragraph-aware chunks with a target of about 700 characters. Short documents remain together, while longer guides split at meaningful paragraph boundaries. The overlap preserves context between neighboring chunks.
 
 ## Sample Chunks
 
-<!-- Five chunks, pasted as text. Label each one and name the file it came from
-     AND the function that produced it — the grader checks your code against
-     what you claim here.
+56 chunks total. Showing 5, spread across the corpus.
 
-     `python app.py chunks -n 5` prints all three for you. Copy them straight
-     across.
+Paste these into your README under Sample Chunks. The rubric asks
+for the source file and the function that produced them — both are
+printed for you below.
 
-     Milestone 3. -->
+======================================================================
+Chunk 1  |  source: guide_accessibility.md#0  |  produced by: chunker.py::split_documents
+======================================================================
+# Getting around the region with limited mobility
 
-**Chunk 1** — source: `` — produced by: ``
+An honest assessment rather than a promotional one. Some of these places are
+difficult and it is better to know in advance.
 
-```
-```
+## Straightforward
 
-**Chunk 2** — source: `` — produced by: ``
+**Thornby Wells** is the easiest town in the region. It is flat, compact, and
+everything is within three minutes of everything else. Parking is free for two
+hours anywhere in town and the station is central. The pump room and gardens
+are level throughout.
 
-```
-```
+**Marchwood** has a modern tram network with level boarding on all four lines,
+running every 8 minutes on weekdays. The city museum and covered market are both
+step-free. The distances between districts are the main consideration.
 
-**Chunk 3** — source: `` — produced by: ``
+======================================================================
+Chunk 2  |  source: guide_corry_vale.md#1  |  produced by: chunker.py::split_documents
+======================================================================
+## Getting around
 
-```
-```
+Nothing within the valley is walkable from anything else — the villages are two to four miles apart. There is one taxi, based in the largest village, and it must be booked a day ahead. Most visitors drive between villages and walk the footpaths in between.
 
-**Chunk 4** — source: `` — produced by: ``
+## Eat and drink
 
-```
-```
+One pub in the largest village serves food seven days a week. A second, in the third village, opens Thursday to Sunday. There is a farm shop at the valley mouththat sells bread, cheese and little else, and it closes at 4pm. Bring supplies; this is not a place with options.
 
-**Chunk 5** — source: `` — produced by: ``
+## What to see
 
-```
-```
+======================================================================
+Chunk 3  |  source: guide_givens_mill.md#0  |  produced by: chunker.py::split_documents
+======================================================================
+# Givens Mill
+
+Givens Mill is a village of 700 built around a working watermill that still grinds flour commercially. It is the sort of place people visit for an afternoon andthen talk about for longer than the visit lasted.
+
+## Getting there
+No station and no bus on Sundays; four buses a day from Brightwater on weekdays, taking 30 minutes. Driving is 20 minutes. The village car park holds about forty cars and is full by 11am on summer Saturdays.
+
+## Getting around
+
+Everything is on one street along the river. The mill is at one end and the church at the other, eight minutes apart. The riverside path continues in both directions for as far as you want to walk.
+
+## Eat and drink
+
+======================================================================
+Chunk 4  |  source: guide_marchwood.md#0  |  produced by: chunker.py::split_documents
+======================================================================
+# Marchwood
+
+Marchwood is the regional hub — 180,000 people, the junction everyone changes trains at, and a city most visitors pass through rather than stop in. That is a mistake, though an understandable one, since almost nothing of interest is near the station.
+
+## Getting there
+
+Every railway line in the region meets here, which is the city's defining feature. Trains to Brightwater run every 40 minutes until 11pm. The airport is 20 minutes out by a dedicated bus that runs every 15 minutes and costs more than the equivalent taxi shared between three people.
+
+## Getting around
+
+======================================================================
+Chunk 5  |  source: guide_regional_transport.md#3  |  produced by: chunker.py::split_documents
+======================================================================
+## Walking and cycling
+
+The river path from Brightwater runs four miles upstream on a good surface. The
+old railway trackbed from Kestrelford runs six miles on an easy gradient and is
+the best walking in the region for the effort involved. The coastal path from
+Halden Bay is more serious — exposed, and closed in high wind.
+
+Cycling is pleasant on the river path and the trackbed, and unpleasant on Mill
+Road and the coast road, neither of which has a shoulder.
 
 ## Sample Answer
 
