@@ -118,18 +118,31 @@ def split_documents(documents: list[Document]) -> list[Chunk]:
                 current_parts
                 and current_length + paragraph_length + 2 > config.CHUNK_SIZE
             ):
-                chunks.append(
-                    Chunk(
-                        text="\n\n".join(current_parts),
-                        source=doc.source,
-                        index=index,
-                        produced_by="chunker.py::split_documents",
-                    )
+                last_part = current_parts[-1]
+                last_part_is_heading = bool(
+                    re.fullmatch(r"#{1,6}\s+.+", last_part)
                 )
-                index += 1
 
-                # Keep the last paragraph as context for the next chunk.
-                current_parts = [current_parts[-1]]
+                # A heading describes the paragraph after it. If it lands at
+                # the boundary, carry it forward instead of leaving it orphaned
+                # at the end of the previous chunk.
+                parts_to_emit = (
+                    current_parts[:-1] if last_part_is_heading else current_parts
+                )
+                if parts_to_emit:
+                    chunks.append(
+                        Chunk(
+                            text="\n\n".join(parts_to_emit),
+                            source=doc.source,
+                            index=index,
+                            produced_by="chunker.py::split_documents",
+                        )
+                    )
+                    index += 1
+
+                # Keep the last paragraph as overlap, or carry the heading
+                # forward so it stays attached to its content.
+                current_parts = [last_part]
                 current_length = len(current_parts[0])
 
             current_parts.append(paragraph)

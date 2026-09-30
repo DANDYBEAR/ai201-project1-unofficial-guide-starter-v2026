@@ -308,7 +308,18 @@ should improve all three measurements.
 
 **What I changed:**
 
+I changed one boundary rule in `chunker.py::split_documents`. When a Markdown
+heading would otherwise be the final paragraph of a chunk, the chunker now
+carries that heading forward so it stays with the paragraph it introduces.
+I will index this strategy separately as the `heading_fix` variant so the
+original `default` before-run index remains available for comparison.
+
 **Why I picked it:**
+
+The diagnosis showed that the walking-time failure happened because
+`## Getting around` was separated from the paragraph containing the 35-minute
+answer. This change directly targets that measured failure without changing
+the embedding model, retrieval count, relevance cutoff, or generation prompt.
 
 <!-- Connect it to a specific diagnosis above in one sentence. If you can't,
      you picked a fix because it sounded impressive. -->
@@ -320,13 +331,41 @@ should improve all three measurements.
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 4/5 | 4/5 | 4/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 4/5 | 4/5 | 4/5 | MISSED |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Retrieved chunks are at least 100 characters and contain complete thoughts | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. Answers directly address the question without unsupported details | 4 of 5 | 4/5 | 4/5 | 4/5 | MET |
+
+These counts use the three internal trials in
+`results/run_2026-09-29_2048_after.md`, produced by `run_eval.py::main` against
+the `heading_fix` index variant with caching off. The other two after reports
+showed the same overall result.
 
 **Did it help?**
+
+No. The before and after criterion counts were identical:
+
+| Criterion | Before | After | Change |
+|---|---|---|---|
+| 1. Retrieved chunk contains the answer | 4/5 | 4/5 | None |
+| 2. Every answer names a source | 4/5 | 4/5 | None |
+| 3. Gate stops out-of-corpus questions | 5/5 | 5/5 | None |
+| 4. Chunk size and completeness | 5/5 | 5/5 | None |
+| 5. Direct, supported answers | 4/5 | 4/5 | None |
+
+The heading now stays with the paragraph containing the 35-minute fact, but
+that answer-bearing chunk ranked 24th at a distance of 0.648 and remained
+outside the top five. The best result had a lower distance after the change
+(0.3380 instead of 0.3516), but it still did not contain the answer. All three
+after trials therefore returned another grounded refusal for the walking-time
+question, such as: "I do not have enough information to answer how long it
+takes to walk across Brightwater."
+
+The change fixed the visible heading boundary but did not fix retrieval. The
+answer paragraph is still packed together with the unrelated `Eat and drink`
+section, which likely dilutes its embedding. The experiment therefore narrowed
+the diagnosis, but it did not improve any measured criterion.
 
 <!-- Say plainly whether it did, and how you know. If it made things worse,
      say that — a change that backfired, honestly reported, earns full credit
