@@ -207,11 +207,34 @@ this README.
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 4/5 | 4/5 | 4/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 4/5 | 4/5 | 4/5 | MISSED |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Retrieved chunks are at least 100 characters and contain complete thoughts | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. Answers directly address the question without unsupported details | 4 of 5 | 4/5 | 4/5 | 4/5 | MET |
+
+These counts use the three internal trials in
+`results/run_2026-09-23_2121_before.md`, produced by `run_eval.py::main` with
+caching off. The other two before reports produced the same overall pattern.
+
+### Evidence from the before run
+
+1. `store.py::search` retrieved an answer-bearing chunk for four of the five
+   questions in every trial. For the walking-time question, the top result was
+   `guide_brightwater.md#0`, but that chunk stopped at the `Getting around`
+   heading before the sentence containing the 35-minute answer.
+2. Four of five answers named a source in every trial. The walking-time answer
+   was the exception in all three: "I don't have enough information to answer
+   how long it takes to walk across Brightwater." It named no source.
+3. `run_eval.py::check_out_of_scope` refused all five out-of-corpus questions.
+   Their best distances were 0.845, 0.911, 1.021, 0.860, and 0.819, all above
+   the 0.6 cutoff.
+4. The answer-bearing chunks produced by `chunker.py::split_documents` were
+   355 to 697 characters long and kept complete paragraphs together, so all
+   five exceeded the 100-character minimum without ending mid-sentence.
+5. Four answers directly addressed their questions using retrieved facts. The
+   walking-time answer did not because the retrieved Brightwater chunk stopped
+   before the answer, so that trial scored 4/5 each time.
 
 <!-- Underneath, paste the REAL output for each criterion from one of your
      runs — the actual text your system produced, not a description of it.
@@ -230,11 +253,11 @@ this README.
 
 | # | Criterion | Verdict | How I decided |
 |---|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-| 4 |  |  |  |
-| 5 |  |  |  |
+| 1 | Retrieved chunks contain the answer | MET | Four of five questions retrieved a chunk containing the answer in every run, meeting the 4-of-5 target exactly. |
+| 2 | Every answer names a source | MISSED | Only 4 of 5 answers named a source in each run. The walking-time response refused to answer and did not name a source, so the 5-of-5 target was missed. |
+| 3 | Gate stops out-of-corpus questions | MET | The gate refused all 5 out-of-corpus questions, exceeding the 4-of-5 target. |
+| 4 | Chunks meet the size and completeness requirement | MET | The relevant corpus chunks inspected for all five questions were longer than 100 characters and preserved complete sentences. |
+| 5 | Answers are direct and supported | MET | Four of five answers directly addressed the question using supported information in every run. The walking-time response did not answer the question, meeting the 4-of-5 target exactly. |
 
 ## Diagnoses
 
@@ -255,6 +278,31 @@ this README.
      low, and which one you'd tighten and to what.
 
      Milestone 3. -->
+
+### Criterion 2 — MISSED
+
+**Stage:** Chunking, with the failure showing up during retrieval.
+
+The walking-time question failed in all three trials for the same reason. The
+answer is present in `guide_brightwater.md`: "The town is walkable end to end
+in about 35 minutes." However, `chunker.py::split_documents` placed the
+`Getting around` heading at the end of `guide_brightwater.md#0` and placed its
+answer paragraph in `guide_brightwater.md#1` together with the unrelated
+`Eat and drink` section.
+
+`store.py::search` ranked the heading-only side of that boundary first at a
+distance of 0.3516, but the answer-bearing `guide_brightwater.md#1` chunk did
+not appear in the top five results. As a result, `generate.py::build_prompt`
+sent the model a prompt that mentioned walking around Brightwater but omitted
+the 35-minute fact. Following its grounding instruction, the model refused to
+guess and therefore had no source to name.
+
+This is one repeatable chunk-boundary pattern rather than three separate
+generation errors: retrieval is deterministic, so all three trials received
+the same incomplete context and produced the same kind of refusal. Criterion
+1 still met its 4-of-5 target, but only exactly, and criterion 5 also met its
+4-of-5 target only exactly. Fixing how headings stay attached to their content
+should improve all three measurements.
 
 ## The Improvement
 
