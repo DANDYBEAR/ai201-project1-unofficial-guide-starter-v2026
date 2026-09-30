@@ -1,6 +1,6 @@
 # The Unofficial Guide
 
-<!-- Replace this line with your name and which corpus you picked. -->
+**Jeffrey Diaz — Corpus: `city_guides`**
 
 > **This file is your submission.** Fill it in as you go — most sections get
 > written during the milestone that produces them, not at the end.
@@ -179,6 +179,17 @@ question. My measured in-scope distances ranged from 0.3117 to 0.4249, while
 the out-of-scope distances ranged from 0.8190 to 1.0208. I kept the cutoff at
 0.6 because it falls between those two groups and recorded the evidence in
 this README.
+
+**3.** In unit 2, I asked Codex to compare the repeated failures and identify
+which pipeline stage caused them. Its first pass inferred from the retrieved
+source filenames that the Brightwater result contained the walking-time
+answer. I had it inspect the exact retrieved text and generation prompt instead.
+That showed the top chunk stopped at the `Getting around` heading, while the
+chunk containing "35 minutes" was outside the top five. I corrected criterion
+1 from 5/5 to 4/5, made one heading-boundary change, and reran the evaluation.
+Codex then helped compare the before and after rankings. Because the answer
+chunk still ranked 24th, I reported that the change did not improve the scores
+instead of treating the code change itself as a success.
 
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
@@ -384,9 +395,34 @@ the diagnosis, but it did not improve any measured criterion.
 
      Milestone 5. -->
 
+Criterion 2 is still **MISSED**. Only four of the five answers named a source
+in every after-run trial. The walking-time question still produced a refusal
+without a source because the chunk containing the 35-minute answer ranked 24th
+at a distance of 0.648, outside the top five supplied to generation.
+
+If I continued, I would try a section-based chunking variant in which each
+Markdown heading stays with only the paragraphs in that section. That would
+keep `Getting around` and its 35-minute sentence together without also mixing
+in the unrelated `Eat and drink` section. I would build it under another index
+variant and rerun the same evaluation before deciding whether it helped.
+
+I stopped after the `heading_fix` experiment because this assignment asks for
+one isolated improvement followed by a complete measurement. Making a second
+retrieval or chunking change now would make it harder to attribute any change
+in the after scores to the single tested improvement.
+
 ## What I'd Do Differently
 
 <!-- Knowing what you know now — which of your five criteria would you write
      differently, and why?
 
      Milestone 5. -->
+
+I would rewrite criterion 4. The original says that each "test question should
+be a chunk," which confuses questions with retrieved document chunks and does
+not say exactly which chunk to inspect. A clearer version would be: "For all
+five test questions, the highest-ranked retrieved chunk is at least 100
+characters, ends at a paragraph boundary, and does not leave a Markdown
+heading separated from the paragraph it introduces." This keeps the original
+5-of-5 standard but makes the measurement repeatable and directly checks the
+boundary problem uncovered in this unit.
